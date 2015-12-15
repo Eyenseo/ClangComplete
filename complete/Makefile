@@ -20,7 +20,7 @@ ifeq ($(UNAME_S),Darwin)
 endif
 
 all:
-	$(CXX) $(CXXFLAGS) $(FLAGS) -DNDEBUG -Os -c -fPIC complete.cpp -o $(SRC).o
+	$(CXX) $(CXXFLAGS) $(FLAGS) -DNDEBUG -O3 -march=native -mtune=native -c -fPIC complete.cpp -o $(SRC).o
 	$(CXX) $(COMPLETE_LDFLAGS) $(LDFLAGS)
 debug:
 	$(CXX) $(CXXFLAGS) $(FLAGS) -g -c -fPIC -DCLANG_COMPLETE_LOG $(SRC).cpp -o $(SRC).o
