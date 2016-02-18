@@ -536,6 +536,8 @@ class ClangCompleteAutoComplete(sublime_plugin.EventListener):
     def on_post_save_async(self, view):
         if not is_supported_language(view): return
 
+        reparse(view.file_name(), get_args(view), get_unsaved_buffer(view))
+
         show_panel = None
         show_diagnostics_on_save = get_setting(view, "show_diagnostics_on_save", "no_build")
         if show_diagnostics_on_save == 'always': show_panel = True
@@ -559,3 +561,7 @@ class ClangCompleteAutoComplete(sublime_plugin.EventListener):
             return not_code_regex.search(view.scope_name(view.sel()[0].begin())) == None
         elif key == "clangcomplete_panel_visible":
             return clang_error_panel.is_visible()
+
+    def on_deactivated_async(self, view):
+        if is_supported_language(view):
+            reparse(view.file_name(), get_args(view), get_unsaved_buffer(view))
