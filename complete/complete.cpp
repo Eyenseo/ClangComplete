@@ -903,14 +903,16 @@ void clang_complete_free_tu(const char * filename)
         if (tus.find(name) != tus.end())
         {
             tus.erase(name);
+
         }
+
     });
 }
 
 void clang_complete_free_all()
 {
     std::lock_guard<std::timed_mutex> lock(tus_mutex);
-    tus.clear();
+    tus.reserve(0);
     get_index(true);
 }
 }
