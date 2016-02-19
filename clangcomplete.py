@@ -1,7 +1,7 @@
 # This Source Code Form is subject to the terms of the Mozilla Public
 # License, v. 2.0. If a copy of the MPL was not distributed with this file,
 # You can obtain one at http://mozilla.org/MPL/2.0/.
-# 
+#
 # Copyright (c) 2013, Paul Fultz II
 
 import sublime, sublime_plugin
@@ -38,7 +38,7 @@ def debug_print(*args):
 
 #
 #
-# Retrieve options from cmake 
+# Retrieve options from cmake
 #
 #
 def parse_flags(f):
@@ -122,7 +122,7 @@ def clear_options():
 def get_build_dir(view):
     result = get_setting(view, "build_dir", ["build"])
     if isinstance(result, str): return [result]
-    else: return result 
+    else: return result
 
 def get_options(project_path, additional_options, build_dirs, default_options):
     if project_path in project_options: return project_options[project_path]
@@ -200,7 +200,7 @@ def find_includes(view, project_path):
         if option.startswith('-I'): result.update(search_include(option[2:]))
         if is_path: result.update(search_include(option))
         if option == '-isystem': is_path = True
-        else: is_path = False 
+        else: is_path = False
     for path in get_setting(view, "default_include_paths", ["/usr/include", "/usr/local/include"]):
         result.update(search_include(path))
     return sorted(result)
@@ -303,7 +303,7 @@ clang_error_panel = ClangErrorPanel()
 
 #
 #
-# Get language from sublime 
+# Get language from sublime
 #
 #
 
@@ -471,7 +471,7 @@ class ClangCompleteAutoComplete(sublime_plugin.EventListener):
 
 
     def diagnostics(self, view):
-        filename = view.file_name()  
+        filename = view.file_name()
         # The view hasnt finsished loading yet
         if (filename is None): return []
         diagnostics = get_diagnostics(filename, get_args(view))
@@ -505,17 +505,17 @@ class ClangCompleteAutoComplete(sublime_plugin.EventListener):
 
     def on_post_text_command(self, view, name, args):
         if not is_supported_language(view): return
-        
+
         if 'delete' in name: return
-        
+
         pos = view.sel()[0].begin()
         self.complete_at(view, "", pos, 0)
-        
+
 
     def on_query_completions(self, view, prefix, locations):
         if not is_supported_language(view):
             return []
-            
+
         completions = self.complete_at(view, prefix, locations[0], get_setting(view, "timeout", 200))
         debug_print("on_query_completions:", prefix, len(completions))
         if (get_setting(view, "inhibit_sublime_completions", True)):
@@ -526,7 +526,9 @@ class ClangCompleteAutoComplete(sublime_plugin.EventListener):
     def on_activated_async(self, view):
         debug_print("on_activated_async")
         if not is_supported_language(view): return
-        
+
+        reparse(view.file_name(), get_args(view), get_unsaved_buffer(view))
+
         debug_print("on_activated_async: get_includes")
         get_includes(view)
         debug_print("on_activated_async: complete_at")
@@ -543,9 +545,9 @@ class ClangCompleteAutoComplete(sublime_plugin.EventListener):
         if show_diagnostics_on_save == 'always': show_panel = True
         elif show_diagnostics_on_save == 'never': show_panel = False
         else: show_panel = not is_build_panel_visible(view.window())
-        
+
         if show_panel: self.show_diagnostics(view)
-        
+
         pos = view.sel()[0].begin()
         self.complete_at(view, "", pos, 0)
 
@@ -561,7 +563,3 @@ class ClangCompleteAutoComplete(sublime_plugin.EventListener):
             return not_code_regex.search(view.scope_name(view.sel()[0].begin())) == None
         elif key == "clangcomplete_panel_visible":
             return clang_error_panel.is_visible()
-
-    def on_deactivated_async(self, view):
-        if is_supported_language(view):
-            reparse(view.file_name(), get_args(view), get_unsaved_buffer(view))
