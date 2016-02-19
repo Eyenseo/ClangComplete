@@ -377,7 +377,7 @@ public:
     {
         // this->index = clang_createIndex(1, 1);
         this->tu = clang_createTranslationUnitFromSourceFile(get_index(), filename, argv, args, 0, nullptr );
-        detach_async([=]() { this->reparse(); });
+        detach_async([this]() { this->reparse(); });
     }
 
     translation_unit(const translation_unit&) = delete;
@@ -664,7 +664,7 @@ public:
             
             std::weak_ptr<async_translation_unit> self = this->shared_from_this();
             std::string buffer_as_string(buffer, buffer+len);
-            this->q.set(detach_async([=]
+            this->q.set(detach_async([self, buffer_as_string, buffer, line, col]
             {
                 auto b = buffer_as_string.c_str();
                 if (buffer == nullptr) b = nullptr;
@@ -753,6 +753,13 @@ void free_wrapper(unsigned int i)
 {
     std::unique_lock<std::mutex> lock(get_allocations_mutex<T>());
     get_allocations<T>().erase(i);
+}
+
+template<class T>
+void free_wrapper()
+{
+    std::unique_lock<std::mutex> lock(get_allocations_mutex<T>());
+    get_allocations<T>().reserve(0);
 } 
 
 std::string& get_string(clang_complete_string s)
@@ -913,6 +920,8 @@ void clang_complete_free_all()
 {
     std::lock_guard<std::timed_mutex> lock(tus_mutex);
     tus.reserve(0);
+    free_wrapper<std::string>();
+    free_wrapper<slist>();
     get_index(true);
 }
 }
